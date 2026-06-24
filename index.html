@@ -2,792 +2,652 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Học Tiếng Trung Giao Tiếp</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="WeChat">
+<meta name="theme-color" content="#1aad19">
+<title>WeChat AI (Groq Setup)</title>
 <style>
-  :root {
-    --red: #c0392b; --red-light: #fdecea; --red-mid: #e74c3c;
-    --gold: #f39c12; --gold-light: #fef9ec;
-    --ink: #1a1a2e; --ink2: #2d2d44; --ink3: #555570;
-    --surface: #ffffff; --surface2: #f8f7f5; --surface3: #f0ede8;
-    --border: #e0dbd4; --border2: #ccc6bd;
-    --green: #27ae60; --green-light: #eafaf1;
-    --blue: #2980b9; --blue-light: #eaf4fb;
-    --radius: 10px; --radius-lg: 16px;
-    --shadow: 0 2px 12px rgba(0,0,0,0.07);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--surface2); color: var(--ink); min-height: 100vh; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #ededed; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; max-width: 430px; margin: 0 auto; }
 
-  /* NAV */
-  header { background: var(--ink); color: white; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
-  .logo { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px; }
-  .logo span { color: var(--gold); }
-  nav { display: flex; gap: 4px; }
-  nav button { background: transparent; border: none; color: rgba(255,255,255,0.7); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.15s; }
-  nav button:hover { background: rgba(255,255,255,0.1); color: white; }
-  nav button.active { background: var(--gold); color: var(--ink); font-weight: 600; }
+/* API KEY SCREEN */
+.apikey-screen { position: fixed; inset: 0; background: #fff; display: flex; flex-direction: column; z-index: 1000; overflow-y: auto; }
+.apikey-header { background: #f55036; padding: 52px 24px 32px; display: flex; flex-direction: column; align-items: center; gap: 12px; flex-shrink: 0; }
+.apikey-logo { width: 72px; height: 72px; background: white; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; color: #f55036; }
+.apikey-title { color: white; font-size: 22px; font-weight: 700; }
+.apikey-sub { color: rgba(255,255,255,0.85); font-size: 13px; text-align: center; line-height: 1.5; }
+.apikey-body { padding: 28px 24px 40px; display: flex; flex-direction: column; gap: 16px; }
+.apikey-label { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+.apikey-wrap { position: relative; }
+.apikey-input { width: 100%; border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 13px 48px 13px 14px; font-size: 14px; color: #222; outline: none; font-family: monospace; background: #fafafa; transition: border 0.2s; }
+.apikey-input:focus { border-color: #f55036; background: white; }
+.apikey-eye { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #aaa; cursor: pointer; font-size: 20px; user-select: none; }
+.apikey-btn { width: 100%; background: #1aad19; color: white; border: none; border-radius: 10px; padding: 15px; font-size: 16px; font-weight: 600; cursor: pointer; }
+.apikey-btn:active { opacity: 0.85; }
+.apikey-hint { background: #fff5f3; border: 1px solid #ffccbe; border-radius: 10px; padding: 14px; font-size: 12.5px; color: #b9331e; line-height: 1.7; }
+.apikey-hint a { color: #f55036; font-weight: 600; }
+.apikey-hint strong { color: #8a1f0e; }
+.apikey-err { background: #fff0f0; border: 1px solid #ffcccc; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #c0392b; display: none; }
+.apikey-skip { text-align: center; font-size: 13px; color: #aaa; cursor: pointer; text-decoration: underline; padding: 4px 0; }
 
-  /* PAGES */
-  .page { display: none; max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
-  .page.active { display: block; }
+/* LOADING */
+.loading-screen { position: fixed; inset: 0; background: #1aad19; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 999; }
+.loading-logo { width: 80px; height: 80px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
+.loading-text { color: white; font-size: 14px; opacity: 0.8; }
 
-  /* CARDS */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow); }
-  .card + .card { margin-top: 1rem; }
-  .card-title { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
-  .card-title .icon { font-size: 20px; }
+/* TOPBAR */
+.topbar { background: #f7f7f7; border-bottom: 0.5px solid #d0d0d0; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; height: 56px; flex-shrink: 0; }
+.topbar-title { font-size: 18px; font-weight: 600; color: #111; }
+.topbar-back { display: flex; align-items: center; gap: 4px; color: #1aad19; font-size: 16px; cursor: pointer; min-width: 0; flex: 1; }
+.topbar-back span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: #111; margin-left: 4px; }
+.topbar-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.topbar-avatar { width: 34px; height: 34px; border-radius: 8px; font-size: 16px; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; flex-shrink: 0; background-size: cover; background-position: center; }
+.key-icon, .settings-icon { font-size: 20px; cursor: pointer; opacity: 0.7; user-select: none; }
+.settings-icon { padding: 4px; }
 
-  /* BADGES */
-  .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .badge-red { background: var(--red-light); color: var(--red); }
-  .badge-gold { background: var(--gold-light); color: #a0690a; }
-  .badge-green { background: var(--green-light); color: #1a7a45; }
-  .badge-blue { background: var(--blue-light); color: #1a5f8a; }
+/* VIEWS */
+.view { display: none; flex-direction: column; height: 100%; overflow: hidden; }
+.view.active { display: flex; }
 
-  /* FORM ELEMENTS */
-  input[type=text], textarea, select {
-    width: 100%; padding: 10px 14px; border: 1px solid var(--border2); border-radius: var(--radius);
-    font-size: 14px; font-family: inherit; color: var(--ink); background: var(--surface);
-    outline: none; transition: border 0.15s;
-  }
-  input[type=text]:focus, textarea:focus { border-color: var(--red); }
-  textarea { resize: vertical; line-height: 1.6; }
-  label { font-size: 13px; font-weight: 600; color: var(--ink3); display: block; margin-bottom: 6px; }
-  .form-group { margin-bottom: 1.2rem; }
+/* STATUS BAR */
+.api-status { padding: 6px 14px; font-size: 12px; text-align: center; cursor: pointer; display: none; }
+.api-status.warn { background: #fff8e1; color: #e65100; border-bottom: 1px solid #ffe082; }
+.api-status.ok { background: #e8f5e9; color: #2e7d32; border-bottom: 1px solid #a5d6a7; }
 
-  /* BUTTONS */
-  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: var(--radius); border: none; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; transition: all 0.15s; }
-  .btn:active { transform: scale(0.97); }
-  .btn-primary { background: var(--red); color: white; }
-  .btn-primary:hover { background: var(--red-mid); }
-  .btn-gold { background: var(--gold); color: var(--ink); }
-  .btn-gold:hover { filter: brightness(0.95); }
-  .btn-outline { background: transparent; border: 1.5px solid var(--border2); color: var(--ink3); }
-  .btn-outline:hover { border-color: var(--ink3); background: var(--surface2); }
-  .btn-green { background: var(--green); color: white; }
-  .btn-green:hover { filter: brightness(0.9); }
-  .btn-sm { padding: 6px 12px; font-size: 13px; }
+/* BOTTOM NAV */
+.bottomnav { background: #f7f7f7; border-top: 0.5px solid #d0d0d0; display: flex; height: 56px; flex-shrink: 0; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; color: #888; font-size: 10px; position: relative; }
+.nav-item.active { color: #1aad19; }
+.nav-item svg { width: 24px; height: 24px; }
+.nav-badge { position: absolute; top: 6px; right: calc(50% - 18px); background: #f04040; color: white; font-size: 10px; font-weight: 700; border-radius: 10px; padding: 1px 5px; min-width: 16px; text-align: center; line-height: 14px; display: none; }
 
-  /* GRID */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
-  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-  @media(max-width: 700px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+/* CHAT LIST */
+.chat-scroll { overflow-y: auto; flex: 1; }
+.search-bar { background: #f7f7f7; padding: 8px 16px; flex-shrink: 0; }
+.search-input { width: 100%; background: white; border: 0.5px solid #d8d8d8; border-radius: 6px; padding: 7px 12px; font-size: 14px; color: #333; outline: none; }
+.chat-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: white; border-bottom: 0.5px solid #e8e8e8; cursor: pointer; transition: background 0.1s; }
+.chat-item:active { background: #e8e8e8; }
+.avatar { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; color: white; flex-shrink: 0; background-size: cover; background-position: center; }
+.chat-info { flex: 1; min-width: 0; }
+.chat-name { font-size: 16px; font-weight: 500; color: #111; }
+.chat-prev { font-size: 13px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.chat-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.chat-time { font-size: 11px; color: #aaa; }
+.unread-count { background: #f04040; color: white; font-size: 11px; font-weight: 700; border-radius: 10px; padding: 1px 6px; min-width: 18px; text-align: center; }
 
-  /* ─── PAGE 1: NHẬP BÀI ─── */
-  .lesson-tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0; }
-  .lesson-tab { padding: 8px 20px; border: none; background: transparent; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink3); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; font-family: inherit; }
-  .lesson-tab.active { color: var(--red); border-bottom-color: var(--red); }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-  .sentences-area { font-size: 13px; line-height: 1.8; min-height: 280px; }
-  .vocab-textarea { font-size: 13px; line-height: 2; min-height: 260px; font-family: 'Consolas', 'Courier New', monospace; }
-  .vocab-preview-wrap { margin-top: 1rem; }
-  .vocab-preview-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .vocab-preview-table th { background: var(--surface3); padding: 7px 12px; text-align: left; font-size: 11px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border); }
-  .vocab-preview-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-  .vocab-preview-table tr:last-child td { border-bottom: none; }
-  .vocab-preview-table tr:hover td { background: var(--surface2); }
-  .vpc-num { color: var(--ink3); font-size: 11px; width: 28px; }
-  .vpc-meaning { color: var(--ink2); }
-  .vpc-pinyin { color: var(--blue); }
-  .vpc-hanzi { color: var(--red); font-size: 17px; font-weight: 500; }
-  .vpc-err { color: #c0392b; font-size: 11px; font-style: italic; }
-  .format-hint { background: var(--surface3); border-radius: var(--radius); padding: 10px 14px; font-size: 12px; color: var(--ink3); margin-bottom: 10px; line-height: 1.8; }
-  .format-hint code { background: white; border: 1px solid var(--border2); border-radius: 4px; padding: 1px 6px; font-family: monospace; color: var(--ink); font-size: 12px; }
-  .info-box { background: var(--blue-light); border: 1px solid #b8daf5; border-radius: var(--radius); padding: 12px 16px; font-size: 13px; color: #1a5f8a; margin-bottom: 1rem; }
+/* CHAT ROOM */
+.chat-messages { flex: 1; overflow-y: auto; padding: 12px 16px; background: #ededed; display: flex; flex-direction: column; gap: 10px; }
+.msg-row { display: flex; gap: 8px; max-width: 85%; }
+.msg-row.me { align-self: flex-end; flex-direction: row-reverse; }
+.msg-av { width: 36px; height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: white; flex-shrink: 0; background-size: cover; background-position: center; }
+.bubble { padding: 9px 12px; border-radius: 8px; font-size: 14px; line-height: 1.55; max-width: 100%; word-break: break-word; }
+.msg-row.them .bubble { background: white; color: #111; border-top-left-radius: 2px; }
+.msg-row.me .bubble { background: #95ec69; color: #111; border-top-right-radius: 2px; }
+.msg-time-div { font-size: 11px; color: #aaa; text-align: center; }
+.typing-bubble { display: flex; gap: 4px; padding: 10px 14px; background: white; border-radius: 8px; border-top-left-radius: 2px; align-items: center; }
+.typing-dot { width: 6px; height: 6px; border-radius: 50%; background: #999; animation: bounce 1.2s infinite; }
+.typing-dot:nth-child(2){animation-delay:.2s} .typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
 
-  /* ─── PAGE 2: XEM BÀI ─── */
-  .lesson-selector { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; }
-  .lesson-selector select { width: auto; min-width: 200px; }
-  .vocab-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  .vocab-table th { background: var(--surface3); padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border); }
-  .vocab-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
-  .vocab-table tr:last-child td { border-bottom: none; }
-  .vocab-table tr:hover td { background: var(--surface2); }
-  .hanzi { font-size: 20px; font-weight: 500; color: var(--red); }
-  .pinyin-text { color: var(--blue); font-size: 14px; }
-  .meaning { color: var(--ink3); }
-  .sentence-list { list-style: none; counter-reset: sent; }
-  .sentence-list li { counter-increment: sent; padding: 10px 0; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: baseline; font-size: 14px; color: var(--ink2); }
-  .sentence-list li::before { content: counter(sent); min-width: 24px; height: 24px; background: var(--surface3); color: var(--ink3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
-  .sentence-list li:last-child { border-bottom: none; }
-  .stats-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 1.5rem; }
-  .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 20px; text-align: center; flex: 1; min-width: 100px; }
-  .stat-num { font-size: 26px; font-weight: 700; color: var(--red); }
-  .stat-label { font-size: 12px; color: var(--ink3); margin-top: 2px; }
+/* EDIT PROFILE MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; items-content: center; justify-content: center; z-index: 2000; padding: 20px; align-items: center; }
+.modal-box { background: white; border-radius: 12px; width: 100%; max-width: 340px; padding: 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.modal-title { font-size: 16px; font-weight: 600; color: #111; border-bottom: 0.5px solid #eee; padding-bottom: 8px; }
+.modal-field { display: flex; flex-direction: column; gap: 6px; }
+.modal-label { font-size: 13px; color: #555; font-weight: 500; }
+.modal-input { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
+.modal-input:focus { border-color: #1aad19; }
+.modal-btns { display: flex; gap: 10px; margin-top: 6px; }
+.modal-btn { flex: 1; padding: 10px; border-radius: 6px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; }
+.modal-btn.save { background: #1aad19; color: white; }
+.modal-btn.cancel { background: #f0f0f0; color: #333; }
 
-  /* ─── PAGE 3: LUYỆN TẬP ─── */
-  .practice-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; }
-  .progress-bar-wrap { background: var(--surface3); border-radius: 20px; height: 8px; margin-bottom: 1.5rem; overflow: hidden; }
-  .progress-bar { background: linear-gradient(90deg, var(--red), var(--gold)); height: 100%; border-radius: 20px; transition: width 0.4s ease; }
-  .question-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow); text-align: center; }
-  .q-number { font-size: 12px; color: var(--ink3); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
-  .q-vietnamese { font-size: 22px; font-weight: 600; color: var(--ink); margin-bottom: 2rem; line-height: 1.4; }
-  .answer-input { font-size: 16px; padding: 12px 18px; border: 2px solid var(--border2); border-radius: var(--radius); text-align: center; }
-  .answer-input:focus { border-color: var(--red); }
-  .answer-reveal { margin-top: 1.5rem; border-radius: var(--radius); padding: 1.2rem 1.5rem; text-align: left; display: none; }
-  .answer-reveal.show { display: block; }
-  .answer-reveal.correct { background: var(--green-light); border: 1px solid #a8e6c0; }
-  .answer-reveal.wrong { background: #fff5f5; border: 1px solid #f5c0c0; }
-  .answer-reveal .answer-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-  .answer-reveal.correct .answer-label { color: var(--green); }
-  .answer-reveal.wrong .answer-label { color: var(--red); }
-  .answer-hanzi { font-size: 22px; color: var(--red); font-weight: 500; margin-bottom: 4px; }
-  .answer-pinyin { font-size: 16px; color: var(--blue); margin-bottom: 8px; }
-  .hint-box { background: var(--gold-light); border: 1px solid #f5dfa0; border-radius: var(--radius); padding: 1rem 1.2rem; margin-top: 1rem; display: none; }
-  .hint-box.show { display: block; }
-  .hint-title { font-size: 11px; font-weight: 700; color: #8a6f0a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-  .hint-vocab { display: flex; flex-wrap: wrap; gap: 6px; }
-  .hint-chip { background: white; border: 1px solid #e8d090; border-radius: 20px; padding: 4px 12px; font-size: 13px; color: var(--ink2); }
-  .hint-chip .hw { color: var(--red); font-weight: 600; }
-  .hint-chip .hp { color: var(--blue); font-size: 12px; }
-  .btn-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
-  .tts-btn { background: transparent; border: 1.5px solid var(--border2); border-radius: var(--radius); padding: 7px 14px; cursor: pointer; font-size: 13px; color: var(--ink3); font-family: inherit; display: flex; align-items: center; gap: 6px; transition: all 0.15s; }
-  .tts-btn:hover { border-color: var(--red); color: var(--red); }
-  .score-summary { text-align: center; padding: 2rem; }
-  .score-big { font-size: 64px; font-weight: 700; color: var(--red); line-height: 1; }
-  .score-sub { font-size: 16px; color: var(--ink3); margin-top: 8px; }
+/* INPUT BAR */
+.chat-input-bar { background: #f7f7f7; border-top: 0.5px solid #d0d0d0; padding: 8px 12px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.mic-btn { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: #555; flex-shrink: 0; }
+.msg-input { flex: 1; background: white; border: 0.5px solid #d8d8d8; border-radius: 6px; padding: 7px 10px; font-size: 15px; outline: none; max-height: 100px; overflow-y: auto; min-height: 36px; resize: none; font-family: inherit; }
+.send-btn { width: 36px; height: 36px; background: #1aad19; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 
-  /* Empty state */
-  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--ink3); }
-  .empty-state .emoji { font-size: 48px; margin-bottom: 1rem; }
-  .empty-state p { font-size: 15px; }
+/* STUBS */
+.stub { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; color: #aaa; font-size: 15px; }
+.stub svg { width: 56px; height: 56px; opacity: 0.3; }
 
-  /* Toast */
-  .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--ink); color: white; padding: 12px 20px; border-radius: var(--radius); font-size: 14px; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
-  .toast.show { opacity: 1; }
-
-  /* Backup bar */
-  .backup-bar { background: var(--gold-light); border: 1.5px solid #f0d080; border-radius: var(--radius); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 1.2rem; }
-  .backup-bar-text { font-size: 13px; color: #7a5c00; line-height: 1.5; }
-  .backup-bar-text strong { color: #5a4200; }
-  .backup-btns { display: flex; gap: 8px; flex-shrink: 0; }
-  .btn-export { background: var(--green); color: white; }
-  .btn-export:hover { filter: brightness(0.9); }
-  .btn-import { background: var(--blue); color: white; }
-  .btn-import:hover { filter: brightness(0.9); }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+/* SAFE AREA */
+.ios-status { height: env(safe-area-inset-top, 0px); background: #f7f7f7; flex-shrink: 0; }
+.ios-bottom { height: env(safe-area-inset-bottom, 0px); background: #f7f7f7; flex-shrink: 0; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">🀄 <span>汉语</span> Tiếng Trung Giao Tiếp</div>
-  <nav>
-    <button class="active" onclick="showPage('nhap', this)">📥 Nhập bài</button>
-    <button onclick="showPage('xem', this)">📖 Xem bài</button>
-    <button onclick="showPage('luyen', this)">✏️ Luyện tập</button>
-  </nav>
-</header>
-
-<!-- ══════════════════════════════════════════ PAGE: NHẬP BÀI ══════════════════════════════════════════ -->
-<div class="page active" id="page-nhap">
-
-  <!-- BACKUP BAR -->
-  <div class="backup-bar">
-    <div class="backup-bar-text">
-      💾 <strong>Sao lưu dữ liệu:</strong> Export ra file JSON để backup, lần sau Import lại — không bao giờ mất dữ liệu.
-    </div>
-    <div class="backup-btns">
-      <button class="btn btn-export btn-sm" onclick="exportJSON()">⬇️ Export JSON</button>
-      <button class="btn btn-import btn-sm" onclick="document.getElementById('import-file').click()">⬆️ Import JSON</button>
-    </div>
+<div id="apikeyScreen" class="apikey-screen">
+  <div class="apikey-header">
+    <div class="apikey-logo">⚡</div>
+    <div class="apikey-title">WeChat AI (Groq)</div>
+    <div class="apikey-sub">Nhập Groq API Key để chat siêu tốc<br>hoàn toàn miễn phí</div>
   </div>
-  <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
-  <div class="card">
-    <div class="card-title"><span class="icon">📥</span> Nhập bài học mới</div>
-    <div class="info-box">💡 Nhập tên bài học, danh sách từ vựng và 45 câu tiếng Việt. Dữ liệu được lưu tự động trong trình duyệt.</div>
-
-    <div class="form-group">
-      <label>Tên bài học (VD: Bài 1 - Chào hỏi)</label>
-      <input type="text" id="lesson-name" placeholder="Nhập tên bài học...">
-    </div>
-
-    <div class="lesson-tabs">
-      <button class="lesson-tab active" onclick="switchTab('vocab', this)">📚 Từ vựng</button>
-      <button class="lesson-tab" onclick="switchTab('sentences', this)">📝 45 Câu bài tập</button>
-    </div>
-
-    <div class="tab-content active" id="tab-vocab">
-      <div class="format-hint">
-        📋 <strong>Định dạng mỗi dòng:</strong> <code>Nghĩa Việt</code> <code>Tab</code> <code>pinyin</code> <code>Tab</code> <code>汉字</code><br>
-        Phân cách bằng <strong>phím Tab</strong> hoặc nhiều dấu cách. Dòng trống sẽ bị bỏ qua.<br>
-        Ví dụ: <code>Biết / (biết làm gì)	huì	会</code>
-      </div>
-      <textarea class="vocab-textarea" id="vocab-input" placeholder="Nghĩa Việt&#9;pinyin&#9;汉字&#10;Ví dụ:&#10;Biết / biết làm gì&#9;huì&#9;会&#10;Muốn / muốn làm gì&#9;xiǎng&#9;想&#10;Đi&#9;qù&#9;去" oninput="previewVocab()"></textarea>
-      <div class="vocab-preview-wrap" id="vocab-preview-wrap" style="display:none;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-          <span style="font-size:12px; font-weight:700; color:var(--ink3); text-transform:uppercase; letter-spacing:0.5px;">Xem trước — <span id="vocab-count">0</span> từ</span>
-          <button class="btn btn-outline btn-sm" onclick="document.getElementById('vocab-input').value=''; previewVocab()">🗑️ Xóa</button>
-        </div>
-        <table class="vocab-preview-table">
-          <thead><tr><th>#</th><th>Nghĩa tiếng Việt</th><th>Pinyin</th><th>Chữ Hán</th></tr></thead>
-          <tbody id="vocab-preview-body"></tbody>
-        </table>
+  <div class="apikey-body">
+    <div>
+      <div class="apikey-label">🔑 Groq API Key</div>
+      <div class="apikey-wrap">
+        <input class="apikey-input" id="keyInput" type="password" placeholder="gsk_..." autocomplete="off" autocorrect="off" spellcheck="false">
+        <span class="apikey-eye" id="eyeBtn" onclick="toggleKeyVis()">👁</span>
       </div>
     </div>
-
-    <div class="tab-content" id="tab-sentences">
-      <div class="format-hint">
-        📋 <strong>Định dạng mỗi dòng:</strong> <code>Tiếng Việt</code> <code>Tab</code> <code>pinyin</code> <code>Tab</code> <code>汉字</code><br>
-        Phân cách bằng <strong>phím Tab</strong> hoặc nhiều dấu cách. Dòng trống sẽ bị bỏ qua.<br>
-        Ví dụ: <code>Bạn tên là gì?	nǐ jiào shénme míngzi?	你叫什么名字？</code>
-      </div>
-      <textarea class="vocab-textarea" id="sentences-input" placeholder="Tiếng Việt&#9;pinyin&#9;汉字&#10;Ví dụ:&#10;Bạn tên là gì?&#9;nǐ jiào shénme míngzi?&#9;你叫什么名字？&#10;Tôi tên là Minh.&#9;wǒ jiào Minh.&#9;我叫Minh。&#10;Bạn khỏe không?&#9;nǐ hǎo ma?&#9;你好吗？" oninput="previewSentences()"></textarea>
-      <div class="vocab-preview-wrap" id="sent-preview-wrap" style="display:none;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-          <span style="font-size:12px; font-weight:700; color:var(--ink3); text-transform:uppercase; letter-spacing:0.5px;">Xem trước — <span id="sent-count">0</span> câu</span>
-          <button class="btn btn-outline btn-sm" onclick="document.getElementById('sentences-input').value=''; previewSentences()">🗑️ Xóa</button>
-        </div>
-        <table class="vocab-preview-table">
-          <thead><tr><th>#</th><th>Tiếng Việt</th><th>Pinyin</th><th>Chữ Hán</th></tr></thead>
-          <tbody id="sent-preview-body"></tbody>
-        </table>
-      </div>
+    <div class="apikey-err" id="keyErr"></div>
+    <button class="apikey-btn" onclick="saveKey()">✅ Bắt đầu chat</button>
+    <div class="apikey-hint">
+      <strong>📋 Lấy Groq API Key miễn phí (1 phút):</strong><br>
+      1. Vào <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a><br>
+      2. Đăng nhập → Click <strong>"Create API Key"</strong><br>
+      3. Copy mã key dán vào ô trên<br><br>
+      ✅ <strong>Sử dụng Llama 3 / Gemma tốc độ cực cao</strong><br>
+      ✅ Không cần nạp tiền hay thẻ tín dụng<br>
+      ✅ Key lưu cục bộ bảo mật trên trình duyệt của bạn
     </div>
-
-    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:1.5rem; flex-wrap:wrap;">
-      <button class="btn btn-outline" onclick="clearForm()">🗑️ Xóa form</button>
-      <button class="btn btn-primary" onclick="saveLesson()">💾 Lưu bài học</button>
-    </div>
-  </div>
-
-  <!-- Danh sách bài đã lưu -->
-  <div class="card" style="margin-top:1.2rem;">
-    <div class="card-title"><span class="icon">📂</span> Các bài đã lưu</div>
-    <div id="saved-lessons-list"></div>
+    <div class="apikey-skip" onclick="skipKey()">Dùng thử không cần key (chế độ Demo)</div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════ PAGE: XEM BÀI ══════════════════════════════════════════ -->
-<div class="page" id="page-xem">
-  <div class="lesson-selector">
-    <select id="view-lesson-select" onchange="loadLessonView()">
-      <option value="">— Chọn bài học —</option>
-    </select>
-    <button class="btn btn-outline btn-sm" onclick="showPage('nhap', document.querySelector('nav button'))">+ Thêm bài mới</button>
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-logo">
+    <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+      <ellipse cx="18" cy="22" rx="13" ry="10" fill="#1aad19"/>
+      <ellipse cx="36" cy="18" rx="11" ry="8.5" fill="#39d538"/>
+      <circle cx="13" cy="20" r="2.5" fill="white"/><circle cx="20" cy="20" r="2.5" fill="white"/>
+      <circle cx="31" cy="17" r="2.2" fill="#1aad19"/><circle cx="38" cy="17" r="2.2" fill="#1aad19"/>
+    </svg>
   </div>
+  <div class="loading-text">Đang kết nối Groq AI...</div>
+</div>
 
-  <div id="view-content">
-    <div class="empty-state">
-      <div class="emoji">📖</div>
-      <p>Chọn một bài học để xem nội dung</p>
+<div class="ios-status"></div>
+
+<div class="view active" id="viewList">
+  <div class="topbar">
+    <div class="topbar-title">微信</div>
+    <div class="topbar-right">
+      <span class="key-icon" onclick="changeKey()" title="Đổi API Key">🔑</span>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="cursor:pointer"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+    </div>
+  </div>
+  <div class="api-status" id="apiStatus" onclick="changeKey()"></div>
+  <div class="search-bar"><input class="search-input" placeholder="🔍  Tìm kiếm" readonly></div>
+  <div class="chat-scroll" id="chatList"></div>
+</div>
+
+<div class="view" id="viewChat">
+  <div class="topbar">
+    <div class="topbar-back" onclick="goBack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      <span id="chatTopbarName"></span>
+    </div>
+    <div class="topbar-right">
+      <span class="settings-icon" onclick="openEditModal()" title="Chỉnh sửa thông tin">⚙️</span>
+      <div id="chatTopbarAv" class="topbar-avatar"></div>
+    </div>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-bar">
+    <div class="mic-btn">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+    </div>
+    <textarea class="msg-input" id="msgInput" placeholder="Nhắn tin..." rows="1" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+    <div class="send-btn" onclick="sendMessage()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════ PAGE: LUYỆN TẬP ══════════════════════════════════════════ -->
-<div class="page" id="page-luyen">
-  <div id="practice-setup">
-    <div class="card">
-      <div class="card-title"><span class="icon">✏️</span> Luyện dịch câu</div>
-      <div class="form-group">
-        <label>Chọn bài học</label>
-        <select id="practice-lesson-select">
-          <option value="">— Chọn bài học —</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Số câu luyện tập</label>
-        <select id="practice-count">
-          <option value="10">10 câu (nhanh)</option>
-          <option value="20">20 câu</option>
-          <option value="45" selected>45 câu (toàn bài)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Thứ tự câu hỏi</label>
-        <select id="practice-order">
-          <option value="seq">Theo thứ tự</option>
-          <option value="random">Ngẫu nhiên</option>
-        </select>
-      </div>
-      <button class="btn btn-primary" style="width:100%; justify-content:center; margin-top:0.5rem;" onclick="startPractice()">🚀 Bắt đầu luyện tập</button>
+<div class="modal-overlay" id="editModal" onclick="closeEditModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-title">Chỉnh sửa người đối thoại</div>
+    <div class="modal-field">
+      <div class="modal-label">Tên hiển thị</div>
+      <input type="text" class="modal-input" id="editNameInput" placeholder="Nhập tên mới...">
     </div>
-  </div>
-
-  <div id="practice-session" style="display:none;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:8px;">
-      <div style="font-size:14px; color:var(--ink3);">Câu <strong id="q-current">1</strong> / <strong id="q-total">45</strong></div>
-      <div style="display:flex; gap:8px;">
-        <span class="badge badge-green" id="score-correct">✓ 0</span>
-        <span class="badge badge-red" id="score-wrong">✗ 0</span>
-        <button class="btn btn-outline btn-sm" onclick="endPractice()">⏹ Kết thúc</button>
-      </div>
+    <div class="modal-field">
+      <div class="modal-label">Avatar (Nhập 1 Emoji HOẶC dán Link ảnh)</div>
+      <input type="text" class="modal-input" id="editAvInput" placeholder="Ví dụ: 🦊 hoặc https://abc.com/anh.jpg">
     </div>
-    <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
-
-    <div class="question-card">
-      <div class="q-number" id="q-lesson-name"></div>
-      <div class="q-vietnamese" id="q-text"></div>
-      <div style="position:relative;">
-        <input type="text" class="answer-input" id="answer-input" placeholder="Nhập pinyin không dấu (VD: ni hao ma)..." onkeydown="if(event.key==='Enter') checkAnswer()">
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-outline btn-sm" onclick="toggleHint()">💡 Gợi ý từ vựng</button>
-        <button class="btn btn-gold" onclick="checkAnswer()">Kiểm tra ✓</button>
-        <button class="btn btn-outline btn-sm" onclick="skipQuestion()">→ Bỏ qua</button>
-      </div>
-
-      <div class="hint-box" id="hint-box">
-        <div class="hint-title">📚 Từ vựng liên quan trong bài:</div>
-        <div class="hint-vocab" id="hint-vocab"></div>
-      </div>
-
-      <div class="answer-reveal" id="answer-reveal">
-        <div class="answer-label" id="answer-label"></div>
-        <div class="answer-hanzi" id="answer-hanzi"></div>
-        <div class="answer-pinyin" id="answer-pinyin"></div>
-        <div id="answer-meaning" style="font-size:13px; color:var(--ink3); margin-top:6px;"></div>
-        <div style="margin-top:1rem; display:flex; gap:8px; flex-wrap:wrap;">
-          <button class="tts-btn" onclick="speak(document.getElementById('answer-hanzi').textContent)">🔊 Nghe lại</button>
-          <button class="btn btn-green btn-sm" onclick="nextQuestion()">Câu tiếp theo →</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="practice-result" style="display:none;">
-    <div class="card score-summary">
-      <div style="font-size:40px; margin-bottom:1rem;">🎉</div>
-      <div class="score-big" id="final-score">0/0</div>
-      <div class="score-sub" id="final-msg"></div>
-      <div style="margin-top:2rem; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-        <button class="btn btn-primary" onclick="restartPractice()">🔄 Luyện lại</button>
-        <button class="btn btn-outline" onclick="showPage('luyen', document.querySelectorAll('nav button')[2])">← Chọn bài khác</button>
-      </div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeEditModal()">Hủy</button>
+      <button class="modal-btn save" onclick="saveContactEdit()">Lưu thay đổi</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="view" id="viewDiscover">
+  <div class="topbar"><div class="topbar-title">Khám phá</div></div>
+  <div class="stub">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    <span>Khoảnh khắc & Mini Apps</span>
+  </div>
+</div>
+
+<div class="view" id="viewMe">
+  <div class="topbar"><div class="topbar-title">Tôi</div></div>
+  <div class="stub">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    <span>Trang cá nhân</span>
+  </div>
+</div>
+
+<div class="bottomnav">
+  <div class="nav-item active" id="navChat" onclick="switchTab('Chat')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span>微信</span>
+    <span class="nav-badge" id="totalBadge"></span>
+  </div>
+  <div class="nav-item" id="navContacts" onclick="switchTab('Contacts')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span>Danh bạ</span>
+  </div>
+  <div class="nav-item" id="navDiscover" onclick="switchTab('Discover')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    <span>Khám phá</span>
+  </div>
+  <div class="nav-item" id="navMe" onclick="switchTab('Me')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    <span>Tôi</span>
+  </div>
+</div>
+<div class="ios-bottom"></div>
 
 <script>
-// ─── STORAGE ───
-const STORAGE_KEY = 'hoc_tieng_trung_v1';
-function getData() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; } }
-function saveData(d) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+let CONTACTS = [
+  { id:1, name:"Anh Hùng (Mentor)", color:"#5e72e4", initials:"AH", customAv:"",
+    system:`Bạn là Anh Hùng, mentor công việc của người dùng trong lĩnh vực marketing/kinh doanh. Tuổi 38, dày dạn kinh nghiệm, nói chuyện thẳng thắn nhưng ân cần. Hay chia sẻ kinh nghiệm thực chiến, đặt câu hỏi để người dùng tự tìm câu trả lời, đôi khi giao bài tập nhỏ. Ngôn ngữ: tiếng Việt. Trả lời ngắn như nhắn tin thật (1-3 câu), dùng emoji vừa phải.`,
+    greet:"Em ơi, tuần này project đang tiến đến đâu rồi? 📊" },
+  { id:2, name:"Linh (Du lịch ✈️)", color:"#fb8c00", initials:"Li", customAv:"",
+    system:`Bạn là Linh, bạn thân của người dùng, mê du lịch bụi và ẩm thực địa phương. Năng động, vui vẻ, hay rủ rê đi chơi và chia sẻ tips du lịch. Tiếng Việt tự nhiên, nhiều emoji. Ngắn (1-3 câu).`,
+    greet:"Ơi! Mình vừa book vé đi Đà Lạt tháng sau 😍 Bạn đi không??" },
+  { id:3, name:"Mr. David (Sếp)", color:"#37474f", initials:"D", customAv:"",
+    system:`You are David, the user's direct manager at a multinational company. Professional, results-oriented, sometimes terse. Message about work deliverables, deadlines, project status. English only. Short professional replies (1-3 sentences).`,
+    greet:"Quick check — did you send the Q3 report to the client yet? 📋" },
+  { id:4, name:"Chị Hoa (Đồng nghiệp)", color:"#e91e8c", initials:"CH", customAv:"",
+    system:`Bạn là Chị Hoa, đồng nghiệp thân thiết hơn 5 năm. Hay tâm sự chuyện công sở, drama phòng ban, chia sẻ deal ăn trưa, đôi khi vent về sếp. Thân mật, hài hước, dùng "chị - em". Tiếng Việt pha tiếng Anh công sở. Ngắn (1-3 câu), many emoji.`,
+    greet:"Em ơi chị vừa nghe tin sếp sẽ họp đột xuất chiều nay 😱 Em biết chưa??" },
+  { id:5, name:"Cô Mei (Tiếng Trung 🈶)", color:"#c0392b", initials:"M", customAv:"",
+    system:`You are Teacher Mei, a friendly Mandarin Chinese teacher. Always use Pinyin with tone marks AND Vietnamese translation in brackets. Example: "Nǐ hǎo! (Xin chào!)". Encourage gently, assign short exercises. 1-3 sentences.`,
+    greet:"Nǐ hǎo! (Xin chào!) Hôm nay mình ôn lại thanh điệu nhé? 🈶" },
+  { id:6, name:"Mr. Kevin (English 🇬🇧)", color:"#1565c0", initials:"K", customAv:"",
+    system:`You are Kevin, a friendly British English teacher. Help with business English, idioms, pronunciation. Subtly correct grammar by restating correctly. English only (brief Vietnamese to clarify). Short tutor-chat replies (1-3 sentences).`,
+    greet:"Hey! Ready to practise your presentation English today? Let's go! 🇬🇧" },
+  { id:7, name:"Minh (Gym bro 💪)", color:"#00897b", initials:"Mi", customAv:"",
+    system:`Bạn là Minh, bạn cùng phòng gym của người dùng. Cuồng thể thao, chia sẻ workout tips, meal prep, protein. Năng lượng cao. Tiếng Việt pha gym terms tiếng Anh. Ngắn (1-3 câu), emoji lửa.`,
+    greet:"Bro ơi! Hôm nay leg day không? Mình đang ở gym rồi 🔥💪" },
+  { id:8, name:"Mẹ 👩‍👧", color:"#8e24aa", initials:"Mẹ", customAv:"",
+    system:`Bạn là mẹ của người dùng, khoảng 55 tuổi. Quan tâm, lo lắng cho con, hay hỏi chuyện ăn uống ngủ nghỉ, nhắc nhở sức khỏe, chia sẻ tin tức gia đình. Tiếng Việt thân mật, gọi "con". Ngắn (1-3 câu).`,
+    greet:"Con ăn cơm chưa? Mẹ nấu canh chua để phần nè 🍲" },
+  { id:9, name:"Team Alpha 👥", color:"#455a64", initials:"TA", customAv:"",
+    system:`You are a group chat "Team Alpha" — a work project team. Post short updates: milestones, deadlines, files, wins. Mix English and Vietnamese. Prefix with member name: "[Nam]: " "[Sarah]: " "[Khoa]: " "[Trang]: ". 1-2 sentences.`,
+    greet:"[Sarah]: Morning team! Sprint review is tomorrow at 10am 📋 Please update your tasks!" },
+  { id:10, name:"Hà (Hàng xóm 🏠)", color:"#6d4c41", initials:"Ha", customAv:"",
+    system:`Bạn là Hà, hàng xóm thân của người dùng ở TP.HCM. Hay rủ đi chợ, mượn đồ, chia sẻ món ngon, tám chuyện khu phố. Nhiệt tình, bình dân, vui vẻ. Tiếng Việt Nam Bộ tự nhiên. Ngắn (1-3 câu), nhiều emoji.`,
+    greet:"Bạn ơi! Sáng nay mình nấu bánh canh, sang lấy một tô nha 🍜 Còn nóng hổi nè!" }
+];
 
-// ─── NAV ───
-function showPage(id, btn) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  if (btn) btn.classList.add('active');
-  if (id === 'xem') refreshViewSelect();
-  if (id === 'luyen') { refreshPracticeSelect(); resetPracticeUI(); }
-  if (id === 'nhap') renderSavedLessons();
-}
-
-// ─── TOAST ───
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-// ─── PAGE 1: NHẬP BÀI ───
-function switchTab(id, btn) {
-  document.querySelectorAll('.lesson-tab').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('tab-' + id).classList.add('active');
-}
-
-// Parse vocab from Quizlet-style textarea: Nghĩa Việt [tab] pinyin [tab] hanzi
-function parseVocabText(raw) {
-  return raw.split('\n').map(line => {
-    if (!line.trim()) return null;
-    // Split on tab first, then fallback to 2+ spaces
-    const parts = line.includes('\t')
-      ? line.split('\t').map(s => s.trim())
-      : line.split(/\s{2,}/).map(s => s.trim());
-    if (parts.length < 2) return { meaning: parts[0] || '', pinyin: '', hanzi: '', error: true };
-    return {
-      meaning: parts[0] || '',
-      pinyin:  parts[1] || '',
-      hanzi:   parts[2] || '',
-      error: false
-    };
-  }).filter(Boolean);
-}
-
-function previewVocab() {
-  const raw = document.getElementById('vocab-input').value;
-  const parsed = parseVocabText(raw);
-  const wrap = document.getElementById('vocab-preview-wrap');
-  const tbody = document.getElementById('vocab-preview-body');
-  if (!parsed.length) { wrap.style.display = 'none'; return; }
-  wrap.style.display = 'block';
-  document.getElementById('vocab-count').textContent = parsed.filter(v => !v.error).length;
-  tbody.innerHTML = parsed.map((v, i) => v.error
-    ? `<tr><td class="vpc-num">${i+1}</td><td colspan="3"><span class="vpc-err">⚠️ Dòng này thiếu dấu Tab để phân cách: "${v.meaning}"</span></td></tr>`
-    : `<tr>
-        <td class="vpc-num">${i+1}</td>
-        <td class="vpc-meaning">${v.meaning}</td>
-        <td class="vpc-pinyin">${v.pinyin}</td>
-        <td class="vpc-hanzi">${v.hanzi}</td>
-       </tr>`
-  ).join('');
-}
-
-function getVocab() {
-  return parseVocabText(document.getElementById('vocab-input').value).filter(v => !v.error && (v.hanzi || v.meaning));
-}
-
-// Parse sentences: Tiếng Việt [tab] pinyin [tab] hanzi
-function parseSentenceText(raw) {
-  return raw.split('\n').map(line => {
-    if (!line.trim()) return null;
-    const parts = line.includes('\t')
-      ? line.split('\t').map(s => s.trim())
-      : line.split(/\s{2,}/).map(s => s.trim());
-    // Strip leading numbering like "1. " or "1) "
-    const vi = (parts[0] || '').replace(/^\d+[\.\)、\s]+/, '').trim();
-    if (parts.length < 2) return { vi, pinyin: '', hanzi: '', error: true };
-    return { vi, pinyin: parts[1] || '', hanzi: parts[2] || '', error: false };
-  }).filter(Boolean);
-}
-
-function previewSentences() {
-  const raw = document.getElementById('sentences-input').value;
-  const parsed = parseSentenceText(raw);
-  const wrap = document.getElementById('sent-preview-wrap');
-  const tbody = document.getElementById('sent-preview-body');
-  if (!parsed.length) { wrap.style.display = 'none'; return; }
-  wrap.style.display = 'block';
-  document.getElementById('sent-count').textContent = parsed.filter(s => !s.error).length;
-  tbody.innerHTML = parsed.map((s, i) => s.error
-    ? `<tr><td class="vpc-num">${i+1}</td><td colspan="3"><span class="vpc-err">⚠️ Thiếu Tab phân cách: "${s.vi}"</span></td></tr>`
-    : `<tr>
-        <td class="vpc-num">${i+1}</td>
-        <td class="vpc-meaning">${s.vi}</td>
-        <td class="vpc-pinyin">${s.pinyin}</td>
-        <td class="vpc-hanzi" style="font-size:15px;">${s.hanzi}</td>
-       </tr>`
-  ).join('');
-}
-
-function getSentences() {
-  return parseSentenceText(document.getElementById('sentences-input').value).filter(s => !s.error && s.vi);
-}
-
-function saveLesson() {
-  const name = document.getElementById('lesson-name').value.trim();
-  if (!name) { toast('⚠️ Vui lòng nhập tên bài học!'); return; }
-  const vocab = getVocab();
-  const sentences = getSentences();
-  if (sentences.length === 0 && vocab.length === 0) { toast('⚠️ Vui lòng nhập ít nhất từ vựng hoặc câu bài tập!'); return; }
-
-  const data = getData();
-  const existing = data.findIndex(l => l.name === name);
-  const lesson = { id: Date.now(), name, vocab, sentences, updatedAt: new Date().toISOString() };
-  if (existing >= 0) { data[existing] = lesson; toast('✅ Đã cập nhật bài: ' + name); }
-  else { data.push(lesson); toast('✅ Đã lưu bài: ' + name); }
-  saveData(data);
-  renderSavedLessons();
-}
-
-function clearForm() {
-  document.getElementById('lesson-name').value = '';
-  document.getElementById('vocab-input').value = '';
-  document.getElementById('sentences-input').value = '';
-  document.getElementById('vocab-preview-wrap').style.display = 'none';
-  document.getElementById('sent-preview-wrap').style.display = 'none';
-}
-
-function renderSavedLessons() {
-  const data = getData();
-  const el = document.getElementById('saved-lessons-list');
-  if (!data.length) { el.innerHTML = '<div class="empty-state"><div class="emoji">📭</div><p>Chưa có bài học nào. Hãy nhập bài đầu tiên!</p></div>'; return; }
-  el.innerHTML = data.map(l => `
-    <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 4px; border-bottom:1px solid var(--border); gap:12px; flex-wrap:wrap;">
-      <div>
-        <div style="font-weight:600; font-size:15px;">${l.name}</div>
-        <div style="font-size:12px; color:var(--ink3); margin-top:3px;">
-          <span class="badge badge-gold">${l.vocab.length} từ vựng</span>&nbsp;
-          <span class="badge badge-blue">${l.sentences.length} câu</span>&nbsp;
-          <span style="margin-left:4px;">${new Date(l.updatedAt).toLocaleDateString('vi-VN')}</span>
-        </div>
-      </div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn btn-outline btn-sm" onclick="editLesson(${l.id})">✏️ Sửa</button>
-        <button class="btn btn-outline btn-sm" onclick="deleteLesson(${l.id})">🗑️</button>
-      </div>
-    </div>`).join('');
-}
-
-function deleteLesson(id) {
-  if (!confirm('Xóa bài học này?')) return;
-  saveData(getData().filter(l => l.id !== id));
-  renderSavedLessons(); toast('🗑️ Đã xóa bài học');
-}
-
-function editLesson(id) {
-  const l = getData().find(x => x.id === id);
-  if (!l) return;
-  document.getElementById('lesson-name').value = l.name;
-  document.getElementById('vocab-input').value = l.vocab.map(v => `${v.meaning}\t${v.pinyin}\t${v.hanzi}`).join('\n');
-  previewVocab();
-  // sentences are now objects {vi, pinyin, hanzi}
-  document.getElementById('sentences-input').value = l.sentences.map(s =>
-    typeof s === 'object' ? `${s.vi}\t${s.pinyin}\t${s.hanzi}` : s
-  ).join('\n');
-  previewSentences();
-  showPage('nhap', document.querySelector('nav button'));
-  toast('✏️ Đang chỉnh sửa: ' + l.name);
-}
-
-// ─── PAGE 2: XEM BÀI ───
-function refreshViewSelect() {
-  const sel = document.getElementById('view-lesson-select');
-  const data = getData();
-  sel.innerHTML = '<option value="">— Chọn bài học —</option>' + data.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
-  if (data.length) loadLessonView();
-}
-
-function loadLessonView() {
-  const id = +document.getElementById('view-lesson-select').value;
-  const l = getData().find(x => x.id === id);
-  const el = document.getElementById('view-content');
-  if (!l) { el.innerHTML = '<div class="empty-state"><div class="emoji">📖</div><p>Chọn một bài học để xem nội dung</p></div>'; return; }
-
-  el.innerHTML = `
-    <div class="stats-row">
-      <div class="stat-box"><div class="stat-num">${l.vocab.length}</div><div class="stat-label">Từ vựng</div></div>
-      <div class="stat-box"><div class="stat-num">${l.sentences.length}</div><div class="stat-label">Câu bài tập</div></div>
-      <div class="stat-box"><div class="stat-num">${new Date(l.updatedAt).toLocaleDateString('vi-VN')}</div><div class="stat-label">Cập nhật</div></div>
-    </div>
-
-    ${l.vocab.length ? `
-    <div class="card">
-      <div class="card-title"><span class="icon">📚</span> Từ vựng (${l.vocab.length} từ)</div>
-      <table class="vocab-table">
-        <thead><tr><th>#</th><th>Chữ Hán</th><th>Pinyin</th><th>Nghĩa tiếng Việt</th><th>🔊</th></tr></thead>
-        <tbody>${l.vocab.map((v,i) => `
-          <tr>
-            <td style="color:var(--ink3); font-size:12px;">${i+1}</td>
-            <td><span class="hanzi">${v.hanzi}</span></td>
-            <td><span class="pinyin-text">${v.pinyin}</span></td>
-            <td class="meaning">${v.meaning}</td>
-            <td><button class="tts-btn" style="padding:4px 8px; font-size:12px;" onclick="speak('${v.hanzi}')">🔊</button></td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>` : ''}
-
-    ${l.sentences.length ? `
-    <div class="card" style="margin-top:1.2rem;">
-      <div class="card-title"><span class="icon">📝</span> Câu bài tập (${l.sentences.length} câu)</div>
-      <table class="vocab-table">
-        <thead><tr><th>#</th><th>Tiếng Việt</th><th>Pinyin</th><th>Chữ Hán</th><th>🔊</th></tr></thead>
-        <tbody>${l.sentences.map((s,i) => {
-          const vi = typeof s === 'object' ? s.vi : s;
-          const py = typeof s === 'object' ? s.pinyin : '';
-          const hz = typeof s === 'object' ? s.hanzi : '';
-          return `<tr>
-            <td style="color:var(--ink3);font-size:12px;">${i+1}</td>
-            <td class="meaning">${vi}</td>
-            <td><span class="pinyin-text">${py}</span></td>
-            <td><span class="hanzi" style="font-size:16px;">${hz}</span></td>
-            <td>${hz ? `<button class="tts-btn" style="padding:4px 8px;font-size:12px;" onclick="speak('${hz.replace(/'/g,"\\'")}')">🔊</button>` : ''}</td>
-          </tr>`;
-        }).join('')}
-        </tbody>
-      </table>
-    </div>` : ''}
-  `;
-}
-
-// ─── PAGE 3: LUYỆN TẬP ───
-let practiceState = { questions: [], current: 0, correct: 0, wrong: 0, lesson: null, answers: [] };
-
-function refreshPracticeSelect() {
-  const sel = document.getElementById('practice-lesson-select');
-  const data = getData();
-  sel.innerHTML = '<option value="">— Chọn bài học —</option>' + data.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
-}
-
-function resetPracticeUI() {
-  document.getElementById('practice-setup').style.display = 'block';
-  document.getElementById('practice-session').style.display = 'none';
-  document.getElementById('practice-result').style.display = 'none';
-}
-
-function startPractice() {
-  const id = +document.getElementById('practice-lesson-select').value;
-  if (!id) { toast('⚠️ Vui lòng chọn bài học!'); return; }
-  const lesson = getData().find(l => l.id === id);
-  if (!lesson || lesson.sentences.length === 0) { toast('⚠️ Bài học này chưa có câu bài tập!'); return; }
-  // Only use sentences that have pinyin (new format)
-  const valid = lesson.sentences.filter(s => typeof s === 'object' && s.pinyin);
-  if (!valid.length) { toast('⚠️ Câu bài tập chưa có Pinyin — vui lòng nhập lại theo định dạng 3 cột!'); return; }
-
-  const count = Math.min(+document.getElementById('practice-count').value, valid.length);
-  const order = document.getElementById('practice-order').value;
-  let qs = valid.map((s, i) => ({ ...s, index: i }));
-  if (order === 'random') qs = qs.sort(() => Math.random() - 0.5);
-  qs = qs.slice(0, count);
-
-  practiceState = { questions: qs, current: 0, correct: 0, wrong: 0, lesson, answers: [] };
-
-  document.getElementById('practice-setup').style.display = 'none';
-  document.getElementById('practice-session').style.display = 'block';
-  document.getElementById('practice-result').style.display = 'none';
-  showQuestion();
-}
-
-function showQuestion() {
-  const s = practiceState;
-  const q = s.questions[s.current];
-  document.getElementById('q-current').textContent = s.current + 1;
-  document.getElementById('q-total').textContent = s.questions.length;
-  document.getElementById('q-lesson-name').textContent = s.lesson.name;
-  document.getElementById('q-text').textContent = q.vi;
-  document.getElementById('answer-input').value = '';
-  document.getElementById('answer-reveal').classList.remove('show', 'correct', 'wrong');
-  document.getElementById('hint-box').classList.remove('show');
-  document.getElementById('tts-btn').style.display = 'none';
-  document.getElementById('score-correct').textContent = '✓ ' + s.correct;
-  document.getElementById('score-wrong').textContent = '✗ ' + s.wrong;
-  const pct = (s.current / s.questions.length) * 100;
-  document.getElementById('progress-bar').style.width = pct + '%';
-  document.getElementById('answer-input').focus();
-  loadHintVocab(q.vi);
-}
-
-function loadHintVocab(sentence) {
-  const vocab = practiceState.lesson.vocab;
-  const el = document.getElementById('hint-vocab');
-  if (!vocab.length) { el.innerHTML = '<span style="color:var(--ink3);font-size:13px;">Bài này chưa có từ vựng.</span>'; return; }
-  // Show all vocab as hints (user can choose which is relevant)
-  el.innerHTML = vocab.slice(0, 12).map(v =>
-    `<div class="hint-chip"><span class="hw">${v.hanzi}</span> <span class="hp">${v.pinyin}</span> — ${v.meaning}</div>`
-  ).join('');
-}
-
-function toggleHint() {
-  document.getElementById('hint-box').classList.toggle('show');
-}
-
-// Strip tone marks from pinyin for flexible comparison
-function stripTones(str) {
-  return str.normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')  // remove diacritics
-    .replace(/ü/g, 'u').replace(/Ü/g, 'U')
-    .toLowerCase().trim();
-}
-// Normalize: remove punctuation, extra spaces
-function normalizePinyin(str) {
-  return stripTones(str).replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim();
-}
-
-function checkAnswer() {
-  const input = document.getElementById('answer-input').value.trim();
-  if (!input) { toast('⚠️ Vui lòng nhập đáp án!'); return; }
-  const q = practiceState.questions[practiceState.current];
-  const reveal = document.getElementById('answer-reveal');
-
-  const userNorm = normalizePinyin(input);
-  const correctNorm = normalizePinyin(q.pinyin);
-  const isCorrect = userNorm === correctNorm;
-
-  if (isCorrect) practiceState.correct++; else practiceState.wrong++;
-  practiceState.answers.push({ vi: q.vi, input, pinyin: q.pinyin, hanzi: q.hanzi, correct: isCorrect });
-
-  reveal.className = 'answer-reveal show ' + (isCorrect ? 'correct' : 'wrong');
-  document.getElementById('answer-label').textContent = isCorrect ? '✓ ĐÚNG RỒI!' : '✗ ĐÁP ÁN ĐÚNG LÀ:';
-  document.getElementById('answer-hanzi').textContent = q.hanzi || '';
-  document.getElementById('answer-pinyin').textContent = q.pinyin || '';
-  document.getElementById('answer-meaning').textContent = isCorrect ? '' : `Bạn nhập: "${input}"`;
-  document.getElementById('score-correct').textContent = '✓ ' + practiceState.correct;
-  document.getElementById('score-wrong').textContent = '✗ ' + practiceState.wrong;
-
-  // TTS auto-play on reveal
-  if (q.hanzi) speak(q.hanzi);
-}
-
-function speak(text) {
-  if (!text) return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'zh-CN'; u.rate = 0.85;
-  window.speechSynthesis.speak(u);
-}
-
-function nextQuestion() {
-  practiceState.current++;
-  if (practiceState.current >= practiceState.questions.length) { showResult(); return; }
-  showQuestion();
-}
-
-function skipQuestion() {
-  practiceState.wrong++;
-  practiceState.current++;
-  if (practiceState.current >= practiceState.questions.length) { showResult(); return; }
-  showQuestion();
-}
-
-function showResult() {
-  document.getElementById('practice-session').style.display = 'none';
-  document.getElementById('practice-result').style.display = 'block';
-  const total = practiceState.questions.length;
-  const correct = practiceState.correct;
-  const pct = Math.round((correct / total) * 100);
-  document.getElementById('final-score').textContent = `${correct}/${total}`;
-  let msg = pct >= 90 ? '🏆 Xuất sắc! Bạn học rất tốt!' : pct >= 70 ? '👍 Khá tốt! Tiếp tục cố gắng!' : pct >= 50 ? '📚 Cần ôn tập thêm nhé!' : '💪 Hãy xem lại bài học và thử lại!';
-  document.getElementById('final-msg').textContent = msg + ` (${pct}% chính xác)`;
-}
-
-function endPractice() { if (confirm('Kết thúc phiên luyện tập?')) { resetPracticeUI(); } }
-function restartPractice() { startPractice(); }
-
-// ─── EXPORT / IMPORT JSON ───
-function exportJSON() {
-  const data = getData();
-  if (!data.length) { toast('⚠️ Chưa có dữ liệu để export!'); return; }
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const date = new Date().toISOString().slice(0,10);
-  a.href = url; a.download = `hoc-tieng-trung-${date}.json`;
-  a.click(); URL.revokeObjectURL(url);
-  toast('✅ Đã export ' + data.length + ' bài học!');
-}
-
-function importJSON(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const imported = JSON.parse(e.target.result);
-      if (!Array.isArray(imported)) throw new Error('Sai định dạng');
-      const current = getData();
-      let added = 0, updated = 0;
-      imported.forEach(lesson => {
-        const idx = current.findIndex(l => l.name === lesson.name);
-        if (idx >= 0) { current[idx] = lesson; updated++; }
-        else { current.push(lesson); added++; }
-      });
-      saveData(current);
-      renderSavedLessons();
-      toast(`✅ Import xong! +${added} bài mới, cập nhật ${updated} bài`);
-    } catch {
-      toast('❌ File JSON không hợp lệ!');
-    }
-    event.target.value = ''; // reset để import lại cùng file nếu cần
-  };
-  reader.readAsText(file);
-}
-
-// ─── INIT ───
-window.onload = () => {
-  renderSavedLessons();
+const DEMO_FALLBACK = {
+  1:["Anh thấy em đang đi đúng hướng rồi 👍","Thử nghĩ xem khách hàng cần gì nhé!","Tuần tới gặp anh chia sẻ tiến độ nha.","Kiên trì là chìa khóa em ơi 🗝️"],
+  2:["Chỗ đó ăn ngon lắm bạn ơi 😋","Mình vừa tìm được deal vé rẻ nè!","Bạn có muốn mình gửi itinerary không?","Đi thôi, cuộc đời ngắn lắm 🌍✈️"],
+  3:["Please send it by EOD today.","Let's sync up tomorrow morning.","Good progress, keep it up!","Make sure the slides are ready."],
+  4:["Chị cũng mới biết, drama thật 😅","Thôi kệ, ăn trưa chưa em?","Chiều nay đi cafe giải stress không? ☕","Chị gửi em file báo cáo mới nhé!"],
+  5:["Hǎo! (Tốt lắm!) Thử bài tập này nhé 📝","Nǐ de fāyīn hěn hǎo! (Phát âm bạn rất tốt!)","Wǒmen míngtiān liànxí! (Ngày mai luyện tập nhé!)"],
+  6:["That's a great sentence! Very natural.","Try 'however' instead — sounds more professional.","Well done! Keep practising! 🌟"],
+  7:["Bro cứng quá 🔥 Tăng tạ thêm đi!","Hôm nay ăn đủ protein chưa bro?","Mình record set mới rồi, bro xem nè 💪"],
+  8:["Nhớ mặc ấm con nhé 🧥","Mẹ nấu chè đậu đỏ, về ăn nha con!","Con uống nước nhiều vào, đừng để mệt."],
+  9:["[Khoa]: Nhớ submit báo cáo trước 5pm!","[Nam]: Tôi sẽ fix bug đó hôm nay.","[Trang]: Meeting room đã book rồi nhé team! 📅"],
+  10:["Mình vừa mua được rau củ tươi ở chợ nè!","Cuối tuần đi siêu thị chung không?","Nhà ông Ba hôm qua có chuyện bạn biết không 😮"]
 };
+
+let groqKey = '';
+let isDemo = false;
+let conversations = {};
+let currentId = null;
+let isTyping = false;
+
+// Helpers for Avatars
+function buildAvatarHtml(c, sizeClass) {
+  if (c.customAv && (c.customAv.startsWith('http://') || c.customAv.startsWith('https://'))) {
+    return `<div class="${sizeClass}" style="background-image: url('${c.customAv}'); background-color: #ccc; color: transparent;">.</div>`;
+  } else if (c.customAv) {
+    return `<div class="${sizeClass}" style="background: #e1e1e1; font-size: calc(${sizeClass === 'avatar' ? '24px' : '18px'});">${c.customAv}</div>`;
+  } else {
+    return `<div class="${sizeClass}" style="background: ${c.color}">${c.initials}</div>`;
+  }
+}
+
+function updateAvatarElement(el, c) {
+  if (c.customAv && (c.customAv.startsWith('http://') || c.customAv.startsWith('https://'))) {
+    el.style.backgroundImage = `url('${c.customAv}')`;
+    el.style.backgroundColor = '#ccc';
+    el.textContent = '';
+  } else if (c.customAv) {
+    el.style.backgroundImage = 'none';
+    el.style.backgroundColor = '#e1e1e1';
+    el.style.fontSize = el.classList.contains('avatar') ? '24px' : '18px';
+    el.textContent = c.customAv;
+  } else {
+    el.style.backgroundImage = 'none';
+    el.style.backgroundColor = c.color;
+    el.style.fontSize = el.classList.contains('avatar') ? '20px' : '16px';
+    el.textContent = c.initials;
+  }
+}
+
+// Init
+CONTACTS.forEach(c => {
+  conversations[c.id] = [{ role:'assistant', content:c.greet, time:recentTime() }];
+  c.unread = 1;
+});
+
+function recentTime() {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - Math.floor(Math.random()*59+1));
+  return p(d.getHours())+':'+p(d.getMinutes());
+}
+function nowTime() { const d=new Date(); return p(d.getHours())+':'+p(d.getMinutes()); }
+function p(n){ return n.toString().padStart(2,'0'); }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// KEY MANAGEMENT
+function toggleKeyVis() {
+  const inp = document.getElementById('keyInput');
+  inp.type = inp.type==='password' ? 'text' : 'password';
+}
+function showErr(msg) {
+  const e = document.getElementById('keyErr');
+  e.textContent = '⚠️ '+msg; e.style.display = 'block';
+}
+function saveKey() {
+  const k = document.getElementById('keyInput').value.trim();
+  if (!k) { showErr('Vui lòng nhập API Key!'); return; }
+  if (!k.startsWith('gsk_')) { showErr('Key phải bắt đầu bằng "gsk_..." — hãy kiểm tra lại!'); return; }
+  groqKey = k; isDemo = false;
+  try { localStorage.setItem('grk', k); } catch(e){}
+  bootApp();
+}
+function skipKey() { isDemo = true; groqKey = ''; bootApp(); }
+function changeKey() {
+  document.getElementById('keyInput').value = groqKey || '';
+  document.getElementById('keyErr').style.display = 'none';
+  document.getElementById('apikeyScreen').style.display = 'flex';
+}
+function bootApp() {
+  document.getElementById('apikeyScreen').style.display = 'none';
+  const ls = document.getElementById('loadingScreen');
+  ls.style.display = 'flex';
+  setTimeout(() => {
+    ls.style.display = 'none';
+    renderList();
+    showStatusBar();
+    setInterval(doIncoming, 75000 + Math.random()*60000);
+  }, 1400);
+}
+function showStatusBar() {
+  const b = document.getElementById('apiStatus');
+  if (isDemo) {
+    b.textContent = '⚠️ Chế độ Demo · Nhấn 🔑 để nhập Groq API Key';
+    b.className = 'api-status warn'; b.style.display = 'block';
+  } else {
+    b.textContent = '✅ Groq AI đã kết nối · Nhấn 🔑 để đổi key';
+    b.className = 'api-status ok'; b.style.display = 'block';
+    setTimeout(() => b.style.display='none', 5000);
+  }
+}
+
+// RENDER LIST
+function renderList() {
+  const el = document.getElementById('chatList');
+  el.innerHTML = '';
+  let total = 0;
+  CONTACTS.forEach(c => {
+    const msgs = conversations[c.id];
+    const last = msgs[msgs.length-1];
+    const u = c.unread||0; total += u;
+    const div = document.createElement('div');
+    div.className = 'chat-item';
+    div.onclick = () => openChat(c.id);
+    
+    let avHtml = buildAvatarHtml(c, 'avatar');
+    
+    div.innerHTML = `
+      ${avHtml}
+      <div class="chat-info">
+        <div class="chat-name">${c.name}</div>
+        <div class="chat-prev">${last.content.substring(0,44)}${last.content.length>44?'...':''}</div>
+      </div>
+      <div class="chat-meta">
+        <div class="chat-time">${last.time||''}</div>
+        ${u?`<div class="unread-count">${u}</div>`:''}
+      </div>`;
+    el.appendChild(div);
+  });
+  const b = document.getElementById('totalBadge');
+  if (total>0) { b.textContent=total>99?'99+':total; b.style.display='block'; }
+  else b.style.display='none';
+}
+
+// OPEN / BACK
+function openChat(id) {
+  currentId = id;
+  const c = CONTACTS.find(x=>x.id===id);
+  c.unread = 0;
+  document.getElementById('chatTopbarName').textContent = c.name;
+  const av = document.getElementById('chatTopbarAv');
+  updateAvatarElement(av, c);
+  document.getElementById('viewList').classList.remove('active');
+  document.getElementById('viewChat').classList.add('active');
+  renderMsgs(); renderList();
+}
+function goBack() {
+  document.getElementById('viewChat').classList.remove('active');
+  document.getElementById('viewList').classList.add('active');
+  currentId = null; renderList();
+}
+
+// EDIT CONTACT FUNCTIONS
+function openEditModal() {
+  if (!currentId) return;
+  const c = CONTACTS.find(x=>x.id===currentId);
+  document.getElementById('editNameInput').value = c.name;
+  document.getElementById('editAvInput').value = c.customAv || '';
+  document.getElementById('editModal').style.display = 'flex';
+}
+function closeEditModal(e) {
+  document.getElementById('editModal').style.display = 'none';
+}
+function saveContactEdit() {
+  if (!currentId) return;
+  const c = CONTACTS.find(x=>x.id===currentId);
+  const newName = document.getElementById('editNameInput').value.trim();
+  const newAv = document.getElementById('editAvInput').value.trim();
+  
+  if (newName) {
+    c.name = newName;
+    // Cập nhật chữ viết tắt nếu đổi tên gốc và không dùng ảnh tùy chỉnh
+    if(newName.length >= 2) {
+      const words = newName.split(' ');
+      c.initials = words.length > 1 ? (words[0][0] + words[words.length-1][0]).toUpperCase() : newName.substring(0,2).toUpperCase();
+    } else {
+      c.initials = newName.toUpperCase();
+    }
+  }
+  c.customAv = newAv;
+  
+  // Lưu vào LocalStorage để không bị mất khi F5
+  try {
+    localStorage.setItem('contacts_custom_data', JSON.stringify(CONTACTS.map(x => ({id: x.id, name: x.name, initials: x.initials, customAv: x.customAv}))));
+  } catch(e) {}
+  
+  // Cập nhật UI ngay lập tức
+  document.getElementById('chatTopbarName').textContent = c.name;
+  updateAvatarElement(document.getElementById('chatTopbarAv'), c);
+  renderMsgs();
+  closeEditModal();
+}
+
+// RENDER MESSAGES
+function renderMsgs() {
+  if (!currentId) return;
+  const c = CONTACTS.find(x=>x.id===currentId);
+  const msgs = conversations[currentId];
+  const box = document.getElementById('chatMessages');
+  box.innerHTML = '';
+  let lastT = '';
+  msgs.forEach(m => {
+    if (m.time && m.time!==lastT) {
+      const td = document.createElement('div');
+      td.className='msg-time-div'; td.textContent=m.time;
+      box.appendChild(td); lastT=m.time;
+    }
+    const row = document.createElement('div');
+    row.className = 'msg-row '+(m.role==='user'?'me':'them');
+    if (m.role!=='user') {
+      let avHtml = buildAvatarHtml(c, 'msg-av');
+      row.innerHTML=`${avHtml}<div class="bubble">${m.content}</div>`;
+    } else {
+      row.innerHTML=`<div class="msg-av" style="background:#bbb">Tôi</div><div class="bubble">${m.content}</div>`;
+    }
+    box.appendChild(row);
+  });
+  scrollBottom();
+}
+function scrollBottom(){ setTimeout(()=>{ const m=document.getElementById('chatMessages'); if(m)m.scrollTop=m.scrollHeight; },60); }
+
+// SEND
+async function sendMessage() {
+  if (isTyping) return;
+  const inp = document.getElementById('msgInput');
+  const txt = inp.value.trim();
+  if (!txt||!currentId) return;
+  const c = CONTACTS.find(x=>x.id===currentId);
+  conversations[currentId].push({ role:'user', content:txt, time:nowTime() });
+  inp.value=''; inp.style.height='auto';
+  renderMsgs(); isTyping=true; showTyping();
+  const reply = await groqReply(c, conversations[currentId]);
+  hideTyping();
+  conversations[currentId].push({ role:'assistant', content:reply, time:nowTime() });
+  renderMsgs(); isTyping=false;
+}
+
+// GROQ API INTEGRATION
+async function groqReply(contact, history) {
+  if (isDemo) {
+    await sleep(700+Math.random()*800);
+    return fallback(contact);
+  }
+  try {
+    const messages = [
+      { role: 'system', content: contact.system }
+    ];
+    history.slice(-12).forEach(m => {
+      messages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content });
+    });
+
+    const res = await fetch(
+      'https://api.groq.com/openai/v1/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${groqKey}`
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: messages,
+          max_tokens: 150,
+          temperature: 0.85
+        })
+      }
+    );
+    const data = await res.json();
+    if (data.error) {
+      const bar = document.getElementById('apiStatus');
+      bar.textContent = '⚠️ Lỗi Groq API: ' + data.error.message + ' · Nhấn 🔑 để đổi key';
+      bar.className = 'api-status warn'; bar.style.display = 'block';
+      return fallback(contact);
+    }
+    return data.choices?.[0]?.message?.content?.trim() || fallback(contact);
+  } catch(e) { 
+    return fallback(contact); 
+  }
+}
+function fallback(c) {
+  const pool = DEMO_FALLBACK[c.id]||["Ừ 😊","Ok nha!","Mình hiểu rồi!"];
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+// TYPING
+function showTyping() {
+  const c = CONTACTS.find(x=>x.id===currentId);
+  const box = document.getElementById('chatMessages');
+  const row = document.createElement('div');
+  row.className='msg-row them'; row.id='typingRow';
+  
+  let avHtml = buildAvatarHtml(c, 'msg-av');
+  row.innerHTML=`${avHtml}<div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  box.appendChild(row); scrollBottom();
+}
+function hideTyping(){ const r=document.getElementById('typingRow'); if(r)r.remove(); }
+
+// INPUT
+function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
+function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
+
+// TABS
+function switchTab(tab) {
+  ['Chat','Contacts','Discover','Me'].forEach(t=>document.getElementById('nav'+t)?.classList.remove('active'));
+  document.getElementById('nav'+tab)?.classList.add('active');
+  ['viewList','viewDiscover','viewMe'].forEach(v=>{const el=document.getElementById(v);if(el)el.classList.remove('active');});
+  ({Chat:'viewList',Contacts:'viewList',Discover:'viewDiscover',Me:'viewMe'})[tab] &&
+    document.getElementById(({Chat:'viewList',Contacts:'viewList',Discover:'viewDiscover',Me:'viewMe'})[tab])?.classList.add('active');
+}
+
+// INCOMING SIMULATION
+async function doIncoming() {
+  if (Math.random()>0.55) return;
+  const pool = CONTACTS.filter(c=>c.id!==currentId);
+  const c = pool[Math.floor(Math.random()*pool.length)];
+  if (!c) return;
+  const reply = await groqReply(c, [
+    {role:'user', content:'Hãy tự gửi một tin nhắn ngắn mới cho người dùng, tự nhiên như đang nhắn tin đột xuất.'}
+  ]);
+  conversations[c.id].push({role:'assistant', content:reply, time:nowTime()});
+  c.unread=(c.unread||0)+1;
+  renderList();
+}
+
+// BOOT
+window.addEventListener('load', () => {
+  // Khôi phục dữ liệu danh bạ đã chỉnh sửa trước đó (nếu có)
+  try {
+    const savedContacts = localStorage.getItem('contacts_custom_data');
+    if (savedContacts) {
+      const parsed = JSON.parse(savedContacts);
+      parsed.forEach(saved => {
+        const match = CONTACTS.find(x => x.id === saved.id);
+        if (match) {
+          if (saved.name) match.name = saved.name;
+          if (saved.initials) match.initials = saved.initials;
+          match.customAv = saved.customAv || '';
+        }
+      });
+    }
+  } catch(e) {}
+
+  let saved='';
+  try { saved=localStorage.getItem('grk')||''; } catch(e){}
+  if (saved&&saved.startsWith('gsk_')) {
+    groqKey=saved; isDemo=false;
+    document.getElementById('keyInput').value=saved;
+    document.getElementById('apikeyScreen').style.display='none';
+    const ls=document.getElementById('loadingScreen'); ls.style.display='flex';
+    setTimeout(()=>{ ls.style.display='none'; renderList(); showStatusBar(); setInterval(doIncoming,75000+Math.random()*60000); },1400);
+  }
+});
 </script>
 </body>
 </html>
